@@ -18,6 +18,10 @@ import {
     log,
     ProxyConfiguration,
 } from '@crawlee/puppeteer';
+
+//manually importing BrowserName, DeviceCategory, OperatingSystemsName on 20-Jan-2024
+import { BrowserName, DeviceCategory, OperatingSystemsName  } from '@crawlee/browser-pool';
+
 import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
 import { Actor, ApifyEnv } from 'apify';
 import { getInjectableScript } from 'idcac-playwright';
@@ -56,6 +60,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     keyValueStoreName?: string;
     requestQueueName?: string;
 
+    //manually adding deviceType, browserType on 20-Jan-2024
+    deviceType: string;
+	browserType: string;
+    
     crawler!: PuppeteerCrawler;
     requestList!: RequestList;
     dataset!: Dataset;
@@ -129,7 +137,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.datasetName = this.input.datasetName;
         this.keyValueStoreName = this.input.keyValueStoreName;
         this.requestQueueName = this.input.requestQueueName;
-
+    
+         //manually adding deviceType, browserType on 20-Jan-2024
+        // Device & browser storages
+		this.deviceType = this.input.deviceType;
+        this.browserType = this.input.browserType;
+        
         // Initialize async operations.
         this.crawler = null!;
         this.requestList = null!;
@@ -168,6 +181,62 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         await this.initPromise;
 
         const args = [];
+
+        
+        //manually adding browserPoolOptionsObject on 20-Jan-2024
+        var browserPoolOptionsObject={}
+        if(this.deviceType == "mobile")
+        {
+        	browserPoolOptionsObject = {
+                useFingerprints: true, // this is the default
+                fingerprintOptions: {
+                    fingerprintGeneratorOptions: {
+                        browsers: [
+                            BrowserName.chrome,
+                            BrowserName.firefox,
+                            BrowserName.edge,
+                            BrowserName.safari,
+                        ],
+                        devices: [
+                            DeviceCategory.mobile,
+                        ],
+                         operatingSystems: [
+                            OperatingSystemsName.android,
+                             OperatingSystemsName.ios,
+        					 OperatingSystemsName.windows,
+                        ],
+                        //locales: [ 'en-US', ],
+                    },
+                },
+            }
+        }
+        else if(this.deviceType == "desktop")
+        {
+        	browserPoolOptionsObject = {
+                useFingerprints: true, // this is the default
+                fingerprintOptions: {
+                    fingerprintGeneratorOptions: {
+                        browsers: [
+                            BrowserName.chrome,
+                            BrowserName.firefox,
+                            BrowserName.edge,
+                            BrowserName.safari,
+                        ],
+                        devices: [
+                            DeviceCategory.desktop,
+                        ],
+                         operatingSystems: [
+                             OperatingSystemsName.windows,
+                             OperatingSystemsName.linux,
+                             OperatingSystemsName.macos,
+                        ],
+                        //locales: [ 'en-US', ],
+                    },
+                },
+            }
+        }
+	
+        
         if (this.input.ignoreCorsAndCsp) args.push('--disable-web-security');
 
         const options: PuppeteerCrawlerOptions = {
@@ -201,6 +270,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                     maxUsageCount: this.maxSessionUsageCount,
                 },
             },
+            browserPoolOptions: browserPoolOptionsObject,
         };
 
         this._createNavigationHooks(options);
