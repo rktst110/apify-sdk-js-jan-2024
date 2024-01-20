@@ -210,7 +210,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 },
             }
         }
-        else if(this.deviceType == "desktop")
+        else
         {
         	browserPoolOptionsObject = {
                 useFingerprints: true, // this is the default
