@@ -271,6 +271,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 },
             },
             browserPoolOptions: browserPoolOptionsObject,
+            
+             // Enable the request locking experiment so that we can actually use the queue.
+            experiments: {
+                //requestLocking: true,
+                requestLocking: false,
+            },
         };
 
         this._createNavigationHooks(options);
